@@ -30,15 +30,31 @@ def not_exist_in_users(username: str) -> bool:
     return False
 
 
+def exist_in_users(username: str) -> bool:
+    return not not_exist_in_users(username)
+
+
+def get_user_id(username: str) -> ObjectId:
+    query = {"username": username}
+    document = myUsers.find_one(query)
+    return document["_id"]
+
+
+def get_user_pass(username: str) -> str:
+    query = {"username": username}
+    document = myUsers.find_one(query)
+    return document["password"]
+
+
 def encode_password(password: str) -> str:
     encoded_str = sha256(password.encode("utf-8")).hexdigest()
     return encoded_str
 
 
 def check_password(password: str, encoded_password: str) -> bool:
-    if encode_password == encode_password(password):
-        return True
-    return False
+    new_encoded_password = encode_password(password)
+    check = encoded_password == new_encoded_password
+    return check
 
 
 def create_new_user(username: str, password: str) -> bool:
