@@ -123,7 +123,7 @@ def update_note(note_id: ObjectId, text) -> bool:
     return False
 
 
-def update_note(note_id: ObjectId) -> bool:
+def delete_note(note_id: ObjectId) -> bool:
     finding_note_query = {"_id": note_id}
     delete = myNotes.delete_one(finding_note_query)
 

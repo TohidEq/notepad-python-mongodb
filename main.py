@@ -71,12 +71,42 @@ def create_new_note(user_id: ObjectId) -> bool:
     return False
 
 
-# not completed...
-def show_all_notes(user_id: ObjectId):
+# returns dict { "number":ObjectId }
+def show_all_notes(user_id: ObjectId) -> dict:
+    notes_choice_dict = {}
+    index_counter = 1
     notes = controller.get_all_user_notes(user_id)
-    if len(notes):
+    if len(notes):  # if we have notes
         for note in notes:
-            print(note["text"])
+            notes_choice_dict[str(index_counter)] = note["_id"]
+            print(
+                f"""-------------------------------------
+                \r{index_counter}. {note["text"]}
+                \r created: {note["created_at"]}
+                \r updated: {note["updated_at"]} """
+            )
+            index_counter += 1
+    return notes_choice_dict
+
+
+def manage_notes(notes_choice_dict: dict) -> bool:
+    print("Enter note number (0 to exit) >>")
+    note_choice = input(">> ")
+    if note_choice in notes_choice_dict:
+        note_id = notes_choice_dict[note_choice]
+        print(menu_after_select_note)
+        menu_choice = int(input("(0 to exit) >> "))
+        match menu_choice:
+            case 0:
+                return True
+            case 1:  # edit
+                new_text = input("enter new note text >>")
+                controller.update_note(note_id, new_text)
+                return True
+            case 2:  # delete
+                controller.delete_note(note_id)
+                return True
+    return True
 
 
 def main():
@@ -106,7 +136,9 @@ def main():
                         create_new_note(user_id)
 
                     case 2:  # see all user notes
-                        show_all_notes(user_id)
+                        notes_choice_dict = show_all_notes(user_id)
+                        manage_notes(notes_choice_dict)
+
                     case _:
                         print("enter 1 or 2 pls")
                 input()
