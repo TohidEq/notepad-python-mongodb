@@ -1,6 +1,15 @@
 import pymongo
 from hashlib import sha256
 
+from bson.objectid import ObjectId
+import datetime
+
+# baraye namayesh rahat tar list o dict o ...
+# dumps(list, indent=4) 4-> tedad space ha baraye har scope
+from bson.json_util import (
+    dumps,
+)
+
 # === CONFIGS ===
 # your mongodb URI (open compass, coppy what u see in URI input and paste it. EZ)
 MONGO_URI = "mongodb://superuser:12345678@localhost:27017/?authSource=admin"
@@ -41,6 +50,8 @@ myNotes:[
 """
 
 
+# ----------------
+# ---- users -----
 def not_exist_in_users(username: str) -> bool:
     query = {"username": username}
     document = myUsers.find_one(query)
@@ -63,15 +74,86 @@ def check_password(password: str, encoded_password: str) -> bool:
 def create_new_user(username: str, password: str) -> bool:
     if not_exist_in_users(username):
         encoded_password = encode_password(password)
-        query = {"username": username, "password": encoded_password}
-        insert = myUsers.insert_one(query)
+        new_user_query = {"username": username, "password": encoded_password}
+        insert = myUsers.insert_one(new_user_query)
+
+        # check success
         if insert.inserted_id:
             print(
-                f"inserted, insert id:[{insert.inserted_id}]"
+                f"new user inserted, insert id:[{insert.inserted_id}]"
             )  # u can delete this line
             return True
-
     print(
         f"insert faild, or this username[{username}] exists"
     )  # u can delete this line
     return False
+
+
+# ----------------
+# ---- notes -----
+def get_all_user_notes(user_id: ObjectId) -> list:
+    finding_user_notes_query = {"user_id": user_id}
+    user_notes = myNotes.find(finding_user_notes_query)
+    return list(user_notes)
+
+
+def create_new_note(user_id: ObjectId, text: str) -> bool:
+    now_date = datetime.datetime.now()
+    new_note_query = {
+        "user_id": user_id,
+        "text": text,
+        "created_at": now_date,
+        "updated_at": now_date,
+    }
+
+    insert = myNotes.insert_one(new_note_query)
+
+    # check success
+    if insert.inserted_id:
+        print(
+            f"new note inserted, insert id:[{insert.inserted_id}]"
+        )  # u can delete this line
+        return True
+    print(f"insert faild")  # u can delete this line
+    return False
+
+
+def update_note(note_id: ObjectId, text) -> bool:
+    now_date = datetime.datetime.now()
+    finding_note_query = {"_id": note_id}
+    update_note_query = {
+        "$set": {
+            "text": text,
+            "updated_at": now_date,
+        }
+    }
+    update = myNotes.update_one(finding_note_query, update_note_query)
+
+    # check success
+    if update.modified_count:
+        print(f"note updated")  # u can delete this line
+        return True
+    print(f"note update faild")  # u can delete this line
+    return False
+
+
+def update_note(note_id: ObjectId) -> bool:
+    finding_note_query = {"_id": note_id}
+    delete = myNotes.delete_one(finding_note_query)
+
+    # check success
+    if delete.deleted_count:
+        print(f"note deleted")  # u can delete this line
+        return True
+    print(f"note delete faild")  # u can delete this line
+    return False
+
+
+def main():
+    user_id = None
+    while user_id == None:
+        print("bolbol :)")
+
+
+if __name__ == "__main__":
+    main()
